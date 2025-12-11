@@ -4,94 +4,234 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jak na AI | Průvodce pro rodiče a učitele</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-light: #f8fafc; --text-muted: #94a3b8; --comic-bg: #fef3c7; --comic-border: #92400e; }
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-light: #f8fafc; --text-muted: #94a3b8; --comic-bg: #fef3c7; --comic-border: #92400e; --success: #10b981; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var(--text-light); height: 100vh; overflow: hidden; }
         .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 50%); z-index: -1; }
-        .app { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; padding: 0 16px; }
+        .app { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; padding: 0 16px; }
+        
+        /* Header */
         header { padding: 12px 0; text-align: center; flex-shrink: 0; }
         .logo { display: inline-flex; align-items: center; gap: 10px; }
         .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .logo-text { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, var(--text-light), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
-        .mode-toggle { display: flex; justify-content: center; gap: 8px; margin: 8px 0; }
+        
+        /* Main Navigation */
+        .main-nav { display: flex; justify-content: center; gap: 8px; margin: 8px 0 12px; }
+        .nav-btn { background: var(--bg-card); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--text-light); padding: 10px 24px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-family: inherit; font-weight: 500; }
+        .nav-btn:hover { border-color: var(--primary); }
+        .nav-btn.active { background: var(--primary); border-color: var(--primary); }
+        
+        /* Pages */
+        .page { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        .page.active { display: flex; }
+        
+        /* ===== CHAT PAGE ===== */
+        .mode-toggle { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
         .mode-btn { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--text-light); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
         .mode-btn:hover { background: rgba(99, 102, 241, 0.3); }
         .mode-btn.active { background: var(--primary); border-color: var(--primary); }
         .mode-btn.comic.active { background: var(--secondary); border-color: var(--secondary); color: #000; }
-        .chat-container { flex: 1; display: flex; flex-direction: column; background: var(--bg-card); border-radius: 20px 20px 0 0; overflow: hidden; border: 1px solid rgba(99, 102, 241, 0.2); border-bottom: none; }
+        
+        .chat-container { flex: 1; display: flex; flex-direction: column; background: var(--bg-card); border-radius: 16px; overflow: hidden; border: 1px solid rgba(99, 102, 241, 0.2); }
         .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
         .message { max-width: 88%; padding: 14px 16px; border-radius: 16px; line-height: 1.6; font-size: 0.9rem; animation: fadeIn 0.3s ease; white-space: pre-wrap; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .message.assistant { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); align-self: flex-start; border-bottom-left-radius: 4px; }
         .message.user { background: rgba(255, 255, 255, 0.1); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message.comic { background: var(--comic-bg); color: #1c1917; font-family: 'Comic Sans MS', cursive, sans-serif; border: 3px solid var(--comic-border); box-shadow: 4px 4px 0 var(--comic-border); max-width: 95%; }
+        .message.comic { background: var(--comic-bg); color: #1c1917; font-family: 'Comic Sans MS', cursive; border: 3px solid var(--comic-border); box-shadow: 4px 4px 0 var(--comic-border); max-width: 95%; }
         .message.typing { background: rgba(99, 102, 241, 0.3); }
         .typing-dots { display: flex; gap: 4px; }
         .typing-dots span { width: 8px; height: 8px; background: var(--text-light); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
         .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
-        .suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+        
+        .context-badge { background: rgba(245, 158, 11, 0.2); border: 1px solid var(--secondary); color: var(--secondary); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 6px; }
+        .context-badge button { background: none; border: none; color: var(--secondary); cursor: pointer; font-size: 1rem; line-height: 1; }
+        
+        .suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.05); }
         .suggestion { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--text-light); padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-        .suggestion:hover { background: rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
-        .input-area { padding: 12px 16px 16px; background: var(--bg-card); border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .suggestion:hover { background: rgba(99, 102, 241, 0.4); }
+        
+        .input-area { padding: 12px 16px; background: var(--bg-card); border-top: 1px solid rgba(255, 255, 255, 0.05); }
         .input-wrapper { display: flex; gap: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 14px; padding: 6px; }
         #messageInput { flex: 1; background: transparent; border: none; color: var(--text-light); font-size: 0.95rem; padding: 10px 12px; font-family: inherit; outline: none; }
         #messageInput::placeholder { color: var(--text-muted); }
-        #sendBtn { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; color: white; width: 44px; height: 44px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, opacity 0.2s; }
+        #sendBtn { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; color: white; width: 44px; height: 44px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         #sendBtn:hover { transform: scale(1.05); }
-        #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #sendBtn:disabled { opacity: 0.5; }
         #sendBtn svg { width: 18px; height: 18px; }
         #sendBtn.comic-mode { background: linear-gradient(135deg, var(--secondary), #d97706); }
-        .messages::-webkit-scrollbar { width: 6px; }
-        .messages::-webkit-scrollbar-track { background: transparent; }
-        .messages::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
-        @media (max-width: 600px) { .app { padding: 0 10px; } header { padding: 10px 0; } .logo-text { font-size: 1.2rem; } .message { max-width: 92%; padding: 12px 14px; font-size: 0.85rem; } }
+        
+        /* ===== LIBRARY PAGE ===== */
+        .library-container { flex: 1; overflow-y: auto; padding: 16px 0; }
+        .module-card { background: var(--bg-card); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+        .module-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+        .module-icon { width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+        .module-title h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 4px; }
+        .module-title p { color: var(--text-muted); font-size: 0.9rem; }
+        .module-badge { display: inline-block; background: var(--success); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; margin-top: 6px; }
+        
+        .module-summary { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .module-summary h3 { font-size: 0.9rem; color: var(--secondary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .module-summary ul { list-style: none; }
+        .module-summary li { padding: 6px 0; font-size: 0.9rem; color: var(--text-light); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+        .module-summary li::before { content: "→"; color: var(--primary); font-weight: bold; }
+        
+        .module-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; border: none; }
+        .action-btn.primary { background: var(--primary); color: white; }
+        .action-btn.primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .action-btn.secondary { background: rgba(255,255,255,0.1); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2); }
+        .action-btn.secondary:hover { background: rgba(255,255,255,0.15); }
+        
+        .key-concepts { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .key-concepts h3 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+        .concept-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .concept-tag { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--text-light); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; }
+        
+        .coming-soon { opacity: 0.5; pointer-events: none; }
+        .coming-soon .module-badge { background: var(--text-muted); }
+        
+        /* Scrollbar */
+        .messages::-webkit-scrollbar, .library-container::-webkit-scrollbar { width: 6px; }
+        .messages::-webkit-scrollbar-track, .library-container::-webkit-scrollbar-track { background: transparent; }
+        .messages::-webkit-scrollbar-thumb, .library-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+        
+        @media (max-width: 600px) { 
+            .module-header { flex-direction: column; align-items: center; text-align: center; }
+            .module-actions { justify-content: center; }
+            .action-btn { width: 100%; justify-content: center; }
+        }
     </style>
 </head>
 <body>
     <div class="bg-gradient"></div>
+    
     <div class="app">
         <header>
             <div class="logo">
                 <div class="logo-icon">🤖</div>
                 <span class="logo-text">Jak na AI</span>
             </div>
-            <p class="subtitle">Průvodce pro rodiče a učitele</p>
         </header>
-        <div class="mode-toggle">
-            <button class="mode-btn active" id="normalBtn" onclick="setMode('normal')">💬 Normální</button>
-            <button class="mode-btn comic" id="comicBtn" onclick="setMode('comic')">🎨 Komiks (styl Čapka)</button>
-        </div>
-        <div class="chat-container">
-            <div class="messages" id="messages">
-                <div class="message assistant">Ahoj! 👋 Jsem tvůj průvodce světem AI.
+
+        <nav class="main-nav">
+            <button class="nav-btn active" onclick="showPage('chat')">💬 Chat</button>
+            <button class="nav-btn" onclick="showPage('library')">📚 Knihovna</button>
+        </nav>
+
+        <!-- ===== CHAT PAGE ===== -->
+        <div class="page active" id="chatPage">
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="normalBtn" onclick="setMode('normal')">💬 Normální</button>
+                <button class="mode-btn comic" id="comicBtn" onclick="setMode('comic')">🎨 Komiks</button>
+            </div>
+
+            <div class="chat-container">
+                <div class="messages" id="messages">
+                    <div class="message assistant">Ahoj! 👋 Jsem tvůj průvodce světem AI.
 
 Pomůžu ti s využitím umělé inteligence ve vzdělávání.
 
-💡 Tip: Přepni do režimu "Komiks" a já odpovím jako příběh ve stylu Karla Čapka!</div>
-            </div>
-            <div class="suggestions" id="suggestions">
-                <button class="suggestion" onclick="askQuestion('Jaké AI nástroje jsou zdarma?')">🆓 Zdarma</button>
-                <button class="suggestion" onclick="askQuestion('Jak začít s AI ve třídě?')">🎓 Ve třídě</button>
-                <button class="suggestion" onclick="askQuestion('Je AI bezpečná pro děti?')">🛡️ Bezpečnost</button>
-                <button class="suggestion" onclick="askQuestion('Co je to umělá inteligence?')">🤔 Co je AI?</button>
-            </div>
-            <div class="input-area">
-                <div class="input-wrapper">
-                    <input type="text" id="messageInput" placeholder="Napiš svůj dotaz..." autocomplete="off">
-                    <button id="sendBtn" onclick="sendMessage()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2"/></svg>
-                    </button>
+📚 Tip: Podívej se do Knihovny na materiály k jednotlivým modulům!</div>
+                </div>
+
+                <div class="suggestions" id="suggestions">
+                    <button class="suggestion" onclick="askQuestion('Jaké AI nástroje jsou zdarma?')">🆓 Zdarma</button>
+                    <button class="suggestion" onclick="askQuestion('Jak začít s AI ve třídě?')">🎓 Ve třídě</button>
+                    <button class="suggestion" onclick="askQuestion('Je AI bezpečná pro děti?')">🛡️ Bezpečnost</button>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-wrapper">
+                        <input type="text" id="messageInput" placeholder="Napiš svůj dotaz..." autocomplete="off">
+                        <button id="sendBtn" onclick="sendMessage()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- ===== LIBRARY PAGE ===== -->
+        <div class="page" id="libraryPage">
+            <div class="library-container">
+                
+                <!-- MODUL 5 -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <div class="module-icon">✍️</div>
+                        <div class="module-title">
+                            <h2>Modul 5: Tvorba obsahu s AI</h2>
+                            <p>Jak tvořit texty, obrázky a multimédia pomocí AI</p>
+                            <span class="module-badge">DOSTUPNÝ</span>
+                        </div>
+                    </div>
+                    
+                    <div class="module-summary">
+                        <h3>📋 Executive Summary</h3>
+                        <ul>
+                            <li><strong>Princip 90-10:</strong> Buď 10% zadání + 90% AI dokončí, nebo 90% AI připraví + 10% vy doladíte</li>
+                            <li><strong>AI First přístup:</strong> Nezačínat "Měl bych použít AI?" ale "Jak mi AI pomůže to udělat lépe?"</li>
+                            <li><strong>3 stupně automatizace:</strong> Manuální → Hromadná → Plná automatizace (vždy začít manuálně!)</li>
+                            <li><strong>Vlastní asistent:</strong> Nahrajte 5-10 svých textů a nechte AI vytvořit asistenta ve vašem stylu</li>
+                            <li><strong>Nejlepší nástroje:</strong> ChatGPT (texty), Gemini (obrázky/video), Canva (grafika), ElevenLabs (hlas)</li>
+                        </ul>
+                    </div>
+
+                    <div class="module-actions">
+                        <button class="action-btn primary" onclick="chatAboutModule(5)">
+                            💬 Zeptat se k tomuto modulu
+                        </button>
+                        <button class="action-btn secondary" onclick="downloadModule(5)">
+                            📥 Stáhnout materiály
+                        </button>
+                    </div>
+
+                    <div class="key-concepts">
+                        <h3>🏷️ Klíčové koncepty</h3>
+                        <div class="concept-tags">
+                            <span class="concept-tag">Princip 90-10</span>
+                            <span class="concept-tag">AI First</span>
+                            <span class="concept-tag">Vlastní asistenti</span>
+                            <span class="concept-tag">Tvorba obrázků</span>
+                            <span class="concept-tag">Video s AI</span>
+                            <span class="concept-tag">Automatizace</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Další moduly - coming soon -->
+                <div class="module-card coming-soon">
+                    <div class="module-header">
+                        <div class="module-icon">🧠</div>
+                        <div class="module-title">
+                            <h2>Modul 1: AI Mindset</h2>
+                            <p>Jak získat správné myšlení pro práci s AI</p>
+                            <span class="module-badge">PŘIPRAVUJEME</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-card coming-soon">
+                    <div class="module-header">
+                        <div class="module-icon">🔧</div>
+                        <div class="module-title">
+                            <h2>Modul 2: AI Nástroje</h2>
+                            <p>Přehled a využití AI nástrojů</p>
+                            <span class="module-badge">PŘIPRAVUJEME</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
     <script>
         const messagesEl = document.getElementById('messages');
         const inputEl = document.getElementById('messageInput');
@@ -100,6 +240,91 @@ Pomůžu ti s využitím umělé inteligence ve vzdělávání.
         let conversationHistory = [];
         let isLoading = false;
         let currentMode = 'normal';
+        let currentModuleContext = null;
+
+        // Navigation
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(page + 'Page').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Chat about specific module
+        function chatAboutModule(moduleNum) {
+            currentModuleContext = moduleNum;
+            showPage('chat');
+            document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            document.querySelectorAll('.nav-btn')[1].classList.remove('active');
+            
+            // Clear and set context
+            conversationHistory = [];
+            messagesEl.innerHTML = `
+                <div class="context-badge">
+                    📚 Kontext: Modul 5 - Tvorba obsahu
+                    <button onclick="clearContext()">✕</button>
+                </div>
+                <div class="message assistant">Skvěle! Teď se můžeš ptát konkrétně na témata z Modulu 5 - Tvorba obsahu s AI.
+
+Můžeš se zeptat třeba na:
+• Jak funguje princip 90-10?
+• Jaké nástroje použít na tvorbu obrázků?
+• Jak si vytvořit vlastního AI asistenta?
+
+Na co se chceš zeptat? 🎨</div>
+            `;
+            suggestionsEl.innerHTML = `
+                <button class="suggestion" onclick="askQuestion('Vysvětli mi princip 90-10')">📊 Princip 90-10</button>
+                <button class="suggestion" onclick="askQuestion('Jak tvořit obrázky s AI?')">🖼️ Obrázky</button>
+                <button class="suggestion" onclick="askQuestion('Jak si vytvořit AI asistenta?')">🤖 Vlastní asistent</button>
+            `;
+            suggestionsEl.style.display = 'flex';
+        }
+
+        function clearContext() {
+            currentModuleContext = null;
+            messagesEl.innerHTML = `<div class="message assistant">Ahoj! 👋 Kontext modulu byl vymazán. Můžeš se ptát na cokoliv.</div>`;
+            conversationHistory = [];
+        }
+
+        function downloadModule(moduleNum) {
+            // Create download link for module 5
+            const content = `MODUL 5: TVORBA OBSAHU S AI
+================================
+
+EXECUTIVE SUMMARY
+-----------------
+• Princip 90-10: Buď 10% zadání + 90% AI dokončí, nebo 90% AI připraví + 10% vy doladíte
+• AI First přístup: Nezačínat "Měl bych použít AI?" ale "Jak mi AI pomůže to udělat lépe?"
+• 3 stupně automatizace: Manuální → Hromadná → Plná automatizace
+• Vlastní asistent: Nahrajte 5-10 svých textů a nechte AI vytvořit asistenta ve vašem stylu
+
+DOPORUČENÉ NÁSTROJE
+-------------------
+• ChatGPT - texty, brainstorming ($20/měsíc)
+• Claude - dlouhé dokumenty, analýzy ($20/měsíc)  
+• Gemini - obrázky, video (zdarma pro studenty)
+• Canva - grafika s AI (zdarma pro školy)
+• ElevenLabs - převod textu na hlas
+
+KLÍČOVÉ KONCEPTY
+----------------
+1. Superpowered Professional - rozvoj superschopností s AI
+2. Trojí kategorizace - nárazově / pravidelně / profesionálně
+3. Tři stupně automatizace - manuální / hromadná / plná
+
+Pro více info navštivte chat a zeptejte se! 🚀`;
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'modul-05-tvorba-obsahu.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Mode toggle
         function setMode(mode) {
             currentMode = mode;
             document.getElementById('normalBtn').classList.toggle('active', mode === 'normal');
@@ -107,29 +332,52 @@ Pomůžu ti s využitím umělé inteligence ve vzdělávání.
             sendBtn.classList.toggle('comic-mode', mode === 'comic');
             inputEl.placeholder = mode === 'comic' ? '🎨 Napiš téma pro komiks...' : 'Napiš svůj dotaz...';
         }
+
         inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !isLoading) sendMessage(); });
+        
         function askQuestion(q) { inputEl.value = q; sendMessage(); }
+        
         async function sendMessage() {
             const message = inputEl.value.trim();
             if (!message || isLoading) return;
             suggestionsEl.style.display = 'none';
             addMessage(message, 'user');
-            conversationHistory.push({ role: 'user', content: message });
+            
+            // Add module context to message if set
+            let contextMessage = message;
+            if (currentModuleContext === 5) {
+                contextMessage = `[KONTEXT: Modul 5 - Tvorba obsahu s AI. Odpovídej na základě znalostí z tohoto modulu.] ${message}`;
+            }
+            conversationHistory.push({ role: 'user', content: contextMessage });
+            
             inputEl.value = '';
             isLoading = true;
             sendBtn.disabled = true;
             const typingEl = addTypingIndicator();
+            
             try {
-                const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: conversationHistory, mode: currentMode }) });
+                const response = await fetch('/api/chat', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ messages: conversationHistory, mode: currentMode }) 
+                });
                 const data = await response.json();
                 typingEl.remove();
-                if (data.error) { addMessage('Omlouvám se, něco se pokazilo. 😅', 'assistant'); }
-                else { addMessage(data.message, 'assistant', currentMode === 'comic'); conversationHistory.push({ role: 'assistant', content: data.message }); }
-            } catch (e) { typingEl.remove(); addMessage('Chyba spojení. Zkus znovu. 🔄', 'assistant'); }
+                if (data.error) { 
+                    addMessage('Omlouvám se, něco se pokazilo. 😅', 'assistant'); 
+                } else { 
+                    addMessage(data.message, 'assistant', currentMode === 'comic'); 
+                    conversationHistory.push({ role: 'assistant', content: data.message }); 
+                }
+            } catch (e) { 
+                typingEl.remove(); 
+                addMessage('Chyba spojení. Zkus znovu. 🔄', 'assistant'); 
+            }
             isLoading = false;
             sendBtn.disabled = false;
             inputEl.focus();
         }
+        
         function addMessage(text, role, isComic = false) {
             const el = document.createElement('div');
             el.className = 'message ' + role + (isComic ? ' comic' : '');
@@ -137,6 +385,7 @@ Pomůžu ti s využitím umělé inteligence ve vzdělávání.
             messagesEl.appendChild(el);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
+        
         function addTypingIndicator() {
             const el = document.createElement('div');
             el.className = 'message assistant typing';
